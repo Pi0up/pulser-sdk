@@ -1,9 +1,24 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  export default defineConfig({
+// Read version from package.json for banner
+let packageVersion = '0.0.0';
+try {
+  // @ts-ignore
+  packageVersion = require(path.resolve(__dirname, 'package.json')).version;
+} catch {
+  // ignore
+}
+const banner = `/*! Pulser SDK v${packageVersion} (c) Pulser Labs */`;
+
+export default defineConfig(({ mode }) => {
+  const isProd = mode === 'production';
+  return {
     plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -51,10 +66,24 @@
     },
     build: {
       target: 'esnext',
-      outDir: 'build',
+      lib: {
+        entry: path.resolve(__dirname, 'src/sdk/index.js'),
+        name: 'PulserSDK',
+        formats: ['iife'],
+        fileName: () => isProd ? 'pulser-sdk.min.js' : 'pulser-sdk.js',
+      },
+      sourcemap: true,
+      minify: isProd ? 'terser' : false,
+      rollupOptions: {
+        output: {
+          banner
+        }
+      },
+      outDir: 'build/sdk',
     },
     server: {
       port: 3000,
-      open: true,
+      open: false,
     },
-  });
+  };
+});

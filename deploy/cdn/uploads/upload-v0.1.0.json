@@ -1,0 +1,13 @@
+{
+  "version": "v0.1.0",
+  "minJs": {
+    "local": "/Users/vincent/Documents/_dev/pulser-sdk/deploy/cdn/pulser-sdk.v0.1.0.min.js",
+    "remote": "https://cdn.pulser.uk/pulser-sdk/pulser-sdk.v0.1.0.min.js"
+  },
+  "map": {
+    "local": "/Users/vincent/Documents/_dev/pulser-sdk/deploy/cdn/pulser-sdk.v0.1.0.min.js.map",
+    "remote": "https://cdn.pulser.uk/pulser-sdk/pulser-sdk.v0.1.0.min.js.map"
+  },
+  "timestamp": "2025-12-03T21:15:46.457Z",
+  "status": "success"
+}

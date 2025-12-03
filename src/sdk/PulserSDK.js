@@ -10,6 +10,45 @@ import DataSubmitter from './DataSubmitter.js';
 import NavigationMonitor from './NavigationMonitor.js';
 import UIRenderer from './UIRenderer.js';
 import ConsentManager from './ConsentManager.js';
+import pkg from '../../package.json';
+
+/* Version check: simulate endpoint and notify on new version */
+(function() {
+  function _versionParts(v) { return v.split('.').map(n => parseInt(n, 10)); }
+  function _isNewerVersion(latest, current) {
+    const L = _versionParts(latest);
+    const C = _versionParts(current);
+    for (let i = 0; i < Math.max(L.length, C.length); i++) {
+      const a = L[i] ?? 0;
+      const b = C[i] ?? 0;
+      if (a > b) return true;
+      if (a < b) return false;
+    }
+    return false;
+  }
+  async function _mockVersionEndpoint() {
+    await new Promise(resolve => setTimeout(resolve, 120));
+    return { latest: '0.2.0' };
+  }
+  async function _checkVersionOnLoad() {
+    try {
+      const currentVersion = (typeof pkg !== 'undefined' && pkg.version) ? pkg.version : '0.0.0';
+      const resp = await _mockVersionEndpoint();
+      const latest = resp.latest;
+      if (_isNewerVersion(latest, currentVersion)) {
+        console.warn('[PulserSDK] Nouvelle version disponible: ' + latest + ' (courante: ' + currentVersion + ')');
+        // Auto-update placeholder (disabled by default)
+        const autoUpdate = false;
+        if (autoUpdate && typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+  }
+  _checkVersionOnLoad();
+})();
 
 class PulserSDK {
   // Instance statique pour le pattern Singleton
@@ -96,6 +135,7 @@ class PulserSDK {
       this._setupModules();
       await this._fetchConfiguration();
       this._startMonitoring();
+      await this._verifyVersion();
       
       this.isInitialized = true;
 
@@ -737,9 +777,53 @@ class PulserSDK {
   }
 
   /**
-   * Récupère les informations de debug
-   * @returns {Object}
+  /**
+   * Vérifie la version du SDK contre une source mock et affiche un avertissement si mise à jour disponible
    */
+  async _verifyVersion() {
+    const currentVersion = (typeof pkg !== 'undefined' && pkg?.version) ? pkg.version : '0.0.0';
+    try {
+      const resp = await this._mockVersionEndpoint();
+      const latest = resp.latest;
+      if (this._isNewerVersion(latest, currentVersion)) {
+        console.warn('[PulserSDK] Nouvelle version disponible: ' + latest + ' (courante: ' + currentVersion + ')');
+        // Option d'auto-mise à jour (désactivée par défaut)
+        const autoUpdate = false;
+        if (autoUpdate && typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      }
+    } catch (err) {
+      // Ignore les erreurs de vérification
+    }
+  }
+
+  _mockVersionEndpoint() {
+    // Endpoint fictif simulé qui retourne la dernière version
+    return new Promise(resolve => {
+      setTimeout(() => resolve({ latest: '0.2.0' }), 120);
+    });
+  }
+
+  _versionParts(v) {
+    return (v || '0.0.0').split('.').map(n => parseInt(n, 10) || 0);
+  }
+
+  _isNewerVersion(latest, current) {
+    const L = this._versionParts(latest);
+    const C = this._versionParts(current);
+    for (let i = 0; i < Math.max(L.length, C.length); i++) {
+      const a = L[i] ?? 0;
+      const b = C[i] ?? 0;
+      if (a > b) return true;
+      if (a < b) return false;
+    }
+    return false;
+  }
+ /**
+  * Récupère les informations de debug
+  * @returns {Object}
+  */
   getDebugInfo() {
     return {
       isInitialized: this.isInitialized,
