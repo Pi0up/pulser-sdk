@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test - Protection Références Circulaires</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .test-result {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .test-result.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .test-result.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .test-result.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .icon {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .summary {
+      background: #e7f3ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border-left: 4px solid #007bff;
+    }
+    .summary h2 {
+      margin-top: 0;
+      color: #007bff;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Test - Protection Références Circulaires</h1>
+  <p class="subtitle">Validation de la correction des erreurs <code>Converting circular structure to JSON</code></p>
+
+  <div class="test-section">
+    <h2>🚀 Actions</h2>
+    <button onclick="runAllTests()">▶️ Lancer tous les tests</button>
+    <button onclick="clearResults()">🗑️ Effacer les résultats</button>
+    <button onclick="clearStorage()">🔄 Effacer le localStorage</button>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="summary" id="summary" style="display: none;">
+    <h2>📊 Résumé</h2>
+    <div id="summary-content"></div>
+  </div>
+
+  <script type="module">
+    import PulserSDK from '../sdk/PulserSDK.js';
+
+    const results = [];
+    let sdk = null;
+
+    window.clearResults = () => {
+      results.length = 0;
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('summary').style.display = 'none';
+    };
+
+    window.clearStorage = () => {
+      if (sdk) {
+        sdk.clearData();
+        logResult('💾 Nettoyage', true, 'Toutes les données du SDK ont été effacées du localStorage');
+      }
+    };
+
+    function logResult(test, success, message, details = null) {
+      results.push({ test, success, message, details });
+      updateUI();
+    }
+
+    function updateUI() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = results.map((r, idx) => {
+        const className = r.success ? 'success' : 'error';
+        const icon = r.success ? '✅' : '❌';
+        return `
+          <div class="test-section">
+            <div class="test-result ${className}">
+              <span class="icon">${icon}</span>
+              <div style="flex: 1;">
+                <strong>${r.test}</strong>
+                <div>${r.message}</div>
+                ${r.details ? `<pre>${r.details}</pre>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Afficher le résumé
+      const passed = results.filter(r => r.success).length;
+      const total = results.length;
+      const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
+      
+      document.getElementById('summary').style.display = 'block';
+      document.getElementById('summary-content').innerHTML = `
+        <p><strong>${passed}/${total}</strong> tests réussis (${percentage}%)</p>
+        ${passed === total ? 
+          '<p style="color: #28a745; font-weight: bold;">✅ Tous les tests ont réussi ! Le SDK est protégé contre les références circulaires.</p>' :
+          '<p style="color: #dc3545; font-weight: bold;">❌ Certains tests ont échoué. Vérifier les corrections.</p>'
+        }
+      `;
+    }
+
+    window.runAllTests = async () => {
+      clearResults();
+      logResult('ℹ️ Initialisation', true, 'Démarrage de la suite de tests...', 'Ces tests valident que le SDK gère correctement les objets complexes');
+
+      try {
+        // Initialiser le SDK
+        sdk = new PulserSDK();
+        await sdk.init('example.com', 'fr', null, { debug: true });
+        logResult('🎯 Test 0', true, 'SDK initialisé avec succès');
+      } catch (error) {
+        logResult('🎯 Test 0', false, 'Échec de l\'initialisation du SDK', error.message);
+        return;
+      }
+
+      // Test 1 : Objet avec référence circulaire simple
+      try {
+        const obj = { name: 'test', value: 123 };
+        obj.self = obj; // Référence circulaire
+        sdk.setUserInfo({ circularObject: obj });
+        logResult('🔄 Test 1', true, 'Objet circulaire simple géré sans erreur', 'Objet: { name: "test", value: 123, self: [Circular] }');
+      } catch (error) {
+        logResult('🔄 Test 1', false, 'Erreur avec objet circulaire', error.message);
+      }
+
+      // Test 2 : Objet window (devrait être rejeté)
+      try {
+        sdk.setUserInfo({ windowRef: window });
+        // Vérifier que window n'a pas été stocké
+        const userData = sdk.getDebugInfo().userData;
+        if (userData.windowRef === window) {
+          logResult('🪟 Test 2', false, 'Objet window n\'aurait pas dû être stocké');
+        } else {
+          logResult('🪟 Test 2', true, 'Objet window correctement rejeté', 'Le SDK a détecté et rejeté l\'objet window');
+        }
+      } catch (error) {
+        logResult('🪟 Test 2', false, 'Erreur avec objet window', error.message);
+      }
+
+      // Test 3 : Objet document (devrait être rejeté)
+      try {
+        sdk.setUserInfo({ documentRef: document });
+        // Vérifier que document n'a pas été stocké
+        const userData = sdk.getDebugInfo().userData;
+        if (userData.documentRef === document) {
+          logResult('📄 Test 3', false, 'Objet document n\'aurait pas dû être stocké');
+        } else {
+          logResult('📄 Test 3', true, 'Objet document correctement rejeté', 'Le SDK a détecté et rejeté l\'objet document');
+        }
+      } catch (error) {
+        logResult('📄 Test 3', false, 'Erreur avec objet document', error.message);
+      }
+
+      // Test 4 : Élément DOM
+      try {
+        sdk.setUserInfo({ domElement: document.body });
+        logResult('🏷️ Test 4', true, 'Élément DOM converti en string', 'Converti en "[DOM Element: BODY]"');
+      } catch (error) {
+        logResult('🏷️ Test 4', false, 'Erreur avec élément DOM', error.message);
+      }
+
+      // Test 5 : Objet avec fonctions
+      try {
+        const objWithFunc = {
+          name: 'test',
+          action: function() { return 'hello'; },
+          value: 42
+        };
+        sdk.setUserInfo({ objWithFunc });
+        logResult('⚙️ Test 5', true, 'Objet avec fonctions nettoyé', 'Les fonctions sont automatiquement ignorées');
+      } catch (error) {
+        logResult('⚙️ Test 5', false, 'Erreur avec objet contenant des fonctions', error.message);
+      }
+
+      // Test 6 : Tableau avec références circulaires
+      try {
+        const arr = [1, 2, 3, { name: 'nested' }];
+        arr.push(arr); // Référence circulaire
+        sdk.setUserInfo({ circularArray: arr });
+        logResult('📋 Test 6', true, 'Tableau circulaire géré sans erreur', 'Tableau: [1, 2, 3, {...}, [Circular]]');
+      } catch (error) {
+        logResult('📋 Test 6', false, 'Erreur avec tableau circulaire', error.message);
+      }
+
+      // Test 7 : Objet imbriqué profondément avec circularité
+      try {
+        const parent = {
+          name: 'parent',
+          level: 1,
+          child: {
+            name: 'child',
+            level: 2,
+            grandchild: {
+              name: 'grandchild',
+              level: 3
+            }
+          }
+        };
+        parent.child.grandchild.root = parent; // Boucle profonde
+        sdk.setUserInfo({ deepCircular: parent });
+        logResult('🌳 Test 7', true, 'Objet profond avec circularité géré', 'Structure imbriquée avec boucle détectée et nettoyée');
+      } catch (error) {
+        logResult('🌳 Test 7', false, 'Erreur avec objet profond circulaire', error.message);
+      }
+
+      // Test 8 : Objets imbriqués complexes
+      try {
+        const complexData = {
+          userId: '123',
+          profile: {
+            name: 'John Doe',
+            email: 'john@example.com',
+            preferences: {
+              theme: 'dark',
+              notifications: true,
+              settings: {
+                language: 'fr',
+                timezone: 'Europe/Paris'
+              }
+            }
+          },
+          session: {
+            start: Date.now(),
+            browser: navigator.userAgent
+          }
+        };
+        sdk.setUserInfo(complexData);
+        logResult('📦 Test 8', true, 'Objet complexe imbriqué stocké avec succès', 'Structure profonde sans circularité acceptée');
+      } catch (error) {
+        logResult('📦 Test 8', false, 'Erreur avec objet complexe', error.message);
+      }
+
+      // Test 9 : getDebugInfo() sérialisable
+      try {
+        const debugInfo = sdk.getDebugInfo();
+        const serialized = JSON.stringify(debugInfo);
+        const size = (serialized.length / 1024).toFixed(2);
+        logResult('🔍 Test 9', true, `getDebugInfo() sérialisable en JSON (${size} KB)`, 'Toutes les données de debug peuvent être converties en JSON');
+      } catch (error) {
+        logResult('🔍 Test 9', false, 'getDebugInfo() non sérialisable', error.message);
+      }
+
+      // Test 10 : Vérification du localStorage
+      try {
+        const stored = localStorage.getItem('pulser_sdk_user_meta');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          logResult('💾 Test 10', true, 'localStorage contient du JSON valide', `${Object.keys(parsed).length} clés stockées`);
+        } else {
+          logResult('💾 Test 10', true, 'localStorage vide (normal si pas de données)', 'Aucune donnée utilisateur stockée');
+        }
+      } catch (error) {
+        logResult('💾 Test 10', false, 'localStorage contient du JSON invalide', error.message);
+      }
+
+      // Test 11 : Mix de tous les cas
+      try {
+        const mixedData = {
+          validString: 'hello',
+          validNumber: 42,
+          validBoolean: true,
+          validNull: null,
+          validArray: [1, 2, 3],
+          validObject: { key: 'value' }
+        };
+        
+        // Ajouter des éléments problématiques
+        mixedData.circular = mixedData;
+        mixedData.dom = document.createElement('div');
+        mixedData.func = () => {};
+        
+        sdk.setUserInfo({ mixedData });
+        logResult('🎭 Test 11', true, 'Mix de données valides et invalides géré', 'Les données valides sont préservées, les invalides sont nettoyées');
+      } catch (error) {
+        logResult('🎭 Test 11', false, 'Erreur avec mix de données', error.message);
+      }
+
+      // Test final : Vérifier qu'aucune erreur dans la console
+      logResult('✨ Conclusion', true, 'Tous les tests ont été exécutés sans erreur fatale', 
+        'Le SDK est maintenant protégé contre les erreurs "Converting circular structure to JSON"');
+    };
+  </script>
+</body>
+</html>

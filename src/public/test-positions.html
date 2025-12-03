@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test des Positions - Pulser SDK</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      background: #f0f4ff;
+      border-left: 4px solid #667eea;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .current-position {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .controls button {
+      flex: 1;
+      background: #ff6b6b;
+    }
+
+    .controls button:hover {
+      background: #ff5252;
+    }
+
+    .controls button.hide {
+      background: #ffa726;
+    }
+
+    .controls button.hide:hover {
+      background: #ff9800;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Test des Positions du Widget</h1>
+    <p class="subtitle">Cliquez sur une position pour tester le widget</p>
+
+    <div class="info">
+      ℹ️ Sur desktop, le widget apparaît à la position choisie. Sur mobile (< 768px), toutes les positions forcent le widget en bas pleine largeur.
+    </div>
+
+    <div id="current-position" class="current-position" style="display: none;">
+      Position actuelle : <span id="position-name">-</span>
+    </div>
+
+    <div class="grid">
+      <button onclick="testPosition('top-left')">↖️ Top Left</button>
+      <button onclick="testPosition('top-center')">⬆️ Top Center</button>
+      <button onclick="testPosition('top-right')">↗️ Top Right</button>
+      
+      <button onclick="testPosition('middle-left')">⬅️ Middle Left</button>
+      <button onclick="testPosition('center')">🎯 Center</button>
+      <button onclick="testPosition('middle-right')">➡️ Middle Right</button>
+      
+      <button onclick="testPosition('bottom-left')">↙️ Bottom Left</button>
+      <button onclick="testPosition('bottom-center')">⬇️ Bottom Center</button>
+      <button onclick="testPosition('bottom-right')">↘️ Bottom Right</button>
+    </div>
+
+    <div class="controls">
+      <button class="hide" onclick="hideWidget()">👁️ Cacher le Widget</button>
+      <button onclick="destroySDK()">💥 Détruire le SDK</button>
+    </div>
+  </div>
+
+  <!-- Chargement du SDK -->
+  <script type="module">
+    import PulserSDK from '../sdk/index.js';
+    
+    // Exposer le SDK globalement
+    window.PulserSDK = new PulserSDK();
+    window.currentPosition = 'bottom-right';
+    
+    // Initialisation avec mock API
+    const mockCampaigns = [
+      {
+        id: 'test_campaign',
+        name: 'Test Campaign',
+        startDate: Date.now() - 86400000,
+        endDate: Date.now() + 86400000,
+        priority: 1,
+        frequencyDays: 0,
+        luckFactor: 1,
+        allowListRegex: ['^.*$'],
+        blockListRegex: [],
+        questions: [
+          {
+            id: 'q1_test',
+            title: 'Comment trouvez-vous ce positionnement ?',
+            assistiveText: 'Donnez votre avis',
+            type: 'rating',
+            responseConfig: { max: 5 }
+          }
+        ]
+      }
+    ];
+
+    // Mock de fetch
+    const originalFetch = window.fetch;
+    window.fetch = function(input, init) {
+      const url = input.toString();
+      
+      if (url.includes('/feedback/config')) {
+        return Promise.resolve(new Response(
+          JSON.stringify({ campaigns: mockCampaigns }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        ));
+      }
+      
+      if (url.includes('/feedback/submit') || url.includes('/feedback/impression')) {
+        return Promise.resolve(new Response(
+          JSON.stringify({ success: true }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        ));
+      }
+      
+      return originalFetch(input, init);
+    };
+
+    // Fonction de test de position
+    window.testPosition = async function(position) {
+      // Détruire l'instance existante
+      if (window.PulserSDK) {
+        window.PulserSDK.destroy();
+      }
+
+      // Créer nouvelle instance avec la position
+      window.PulserSDK = new PulserSDK();
+      await window.PulserSDK.init('test.com', 'fr', null, {
+        debug: true,
+        position: position,
+        pollingInterval: 2000
+      });
+
+      // Afficher la question
+      window.PulserSDK.showQuestion('q1_test');
+
+      // Mettre à jour l'affichage
+      window.currentPosition = position;
+      document.getElementById('current-position').style.display = 'block';
+      document.getElementById('position-name').textContent = position;
+    };
+
+    window.hideWidget = function() {
+      if (window.PulserSDK) {
+        window.PulserSDK.hide();
+      }
+    };
+
+    window.destroySDK = function() {
+      if (window.PulserSDK) {
+        window.PulserSDK.destroy();
+        document.getElementById('current-position').style.display = 'none';
+        alert('✅ SDK détruit ! Cliquez sur une position pour le recréer.');
+      }
+    };
+
+    // Initialisation par défaut
+    testPosition('bottom-right');
+  </script>
+</body>
+</html>
