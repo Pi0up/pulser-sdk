@@ -67,6 +67,7 @@ class PulserSDK {
     this.domain = null;
     this.language = 'en';
     this.specificId = null;
+    this.userIdentity = null;
     this.debugMode = false;
     this.position = 'bottom-right';
     
@@ -153,6 +154,7 @@ class PulserSDK {
   _setupModules() {
     // Storage
     this.storageManager = new StorageManager();
+    const persistedIdentity = this.storageManager.getUserIdentity();
     
     // Config
     this.configManager = new ConfigManager(
@@ -166,7 +168,8 @@ class PulserSDK {
     this.decisionEngine = new DecisionEngine(this.storageManager);
     
     // Data
-    this.dataSubmitter = new DataSubmitter(this.domain);
+    this.dataSubmitter = new DataSubmitter(this.domain, persistedIdentity);
+    this._applyUserIdentity(persistedIdentity);
     
     // UI
     this.uiRenderer = new UIRenderer(
@@ -184,8 +187,40 @@ class PulserSDK {
     this.consentManager = new ConsentManager(this.storageManager);
 
     if (ErrorHandler.debugMode) {
-      console.log('[PulserSDK] Modules initialized');
+      console.log('[PulserSDK] Modules initialized', {
+        userIdentity: this.userIdentity
+      });
     }
+  }
+
+  /**
+   * Applique l'identité utilisateur en mémoire et synchronise le DataSubmitter
+   * @param {string|null} identity
+   * @private
+   */
+  _applyUserIdentity(identity) {
+    this.userIdentity = identity;
+    if (this.dataSubmitter) {
+      if (identity) {
+        this.dataSubmitter.setUserIdentity(identity);
+      } else {
+        this.dataSubmitter.clearUserIdentity();
+      }
+    }
+  }
+
+  /**
+   * Normalise une identité utilisateur
+   * @param {any} rawIdentity
+   * @returns {string|null}
+   * @private
+   */
+  _normalizeIdentity(rawIdentity) {
+    if (rawIdentity === null || rawIdentity === undefined) {
+      return null;
+    }
+    const normalized = (typeof rawIdentity === 'string' ? rawIdentity : String(rawIdentity)).trim();
+    return normalized.length ? normalized : null;
   }
 
   /**
@@ -572,6 +607,46 @@ class PulserSDK {
   }
 
   /**
+   * Définit l'identité utilisateur (null pour la supprimer)
+   * @param {string|number|null} loginId
+   */
+  setUserIdentity(loginId) {
+    if (!this.isInitialized) {
+      console.warn('[PulserSDK] Not initialized. Call init() first.');
+      return;
+    }
+
+    ErrorHandler.wrap(() => {
+      const normalized = this._normalizeIdentity(loginId);
+
+      if (!normalized) {
+        this.storageManager.clearUserIdentity();
+        this._applyUserIdentity(null);
+
+        if (ErrorHandler.debugMode) {
+          console.log('[PulserSDK] User identity cleared');
+        }
+        return;
+      }
+
+      this.storageManager.setUserIdentity(normalized);
+      this._applyUserIdentity(normalized);
+
+      if (ErrorHandler.debugMode) {
+        console.log('[PulserSDK] User identity set:', normalized);
+      }
+    }, 'setUserIdentity')();
+  }
+
+  /**
+   * Retourne l'identité utilisateur courante
+   * @returns {string|null}
+   */
+  getUserIdentity() {
+    return this.userIdentity;
+  }
+
+  /**
    * Cache le widget actuellement affiché
    */
   hide() {
@@ -667,7 +742,8 @@ class PulserSDK {
       this.currentCampaign = null;
       this.currentQuestion = null;
       this.isDisplaying = false;
-
+      this._applyUserIdentity(null);
+  
       // Supprimer l'instance singleton
       PulserSDK.instance = null;
 
@@ -683,6 +759,7 @@ class PulserSDK {
   clearData() {
     if (this.storageManager) {
       this.storageManager.clearAll();
+      this._applyUserIdentity(null);
       
       if (ErrorHandler.debugMode) {
         console.log('[PulserSDK] All data cleared');
@@ -861,7 +938,8 @@ class PulserSDK {
       isWidgetVisible: this.uiRenderer?.isVisible || false,
       isDisplaying: this.isDisplaying,
       lastTriggerTime: this.lastTriggerTime,
-      userData: this.storageManager?.getAllUserData() || {}
+      userData: this.storageManager?.getAllUserData() || {},
+      userIdentity: this.userIdentity
     };
   }
 

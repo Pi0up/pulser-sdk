@@ -5,9 +5,39 @@
 import ErrorHandler from './ErrorHandler.js';
 
 class DataSubmitter {
-  constructor(domain) {
+  constructor(domain, userIdentity = null) {
     this.domain = domain;
     this.apiBaseUrl = `https://api.${domain}/feedback`;
+    this.userIdentity = this._normalizeIdentity(userIdentity);
+  }
+
+  setUserIdentity(identity) {
+    this.userIdentity = this._normalizeIdentity(identity);
+  }
+
+  clearUserIdentity() {
+    this.userIdentity = null;
+  }
+
+  _normalizeIdentity(identity) {
+    if (identity === null || identity === undefined) {
+      return null;
+    }
+
+    const normalized = (typeof identity === 'string' ? identity : String(identity)).trim();
+    return normalized.length ? normalized : null;
+  }
+
+  _buildHeaders() {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (this.userIdentity) {
+      headers['X-User-Id'] = this.userIdentity;
+    }
+
+    return headers;
   }
 
   /**
@@ -109,9 +139,7 @@ class DataSubmitter {
 
       const response = await fetch(`${this.apiBaseUrl}/submit`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: this._buildHeaders(),
         body: JSON.stringify(sanitizedPayload)
       });
 
@@ -161,9 +189,7 @@ class DataSubmitter {
 
       const response = await fetch(`${this.apiBaseUrl}/impression`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: this._buildHeaders(),
         body: JSON.stringify(sanitizedPayload)
       });
 

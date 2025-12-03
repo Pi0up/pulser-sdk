@@ -15,7 +15,8 @@ class StorageManager {
       answeredQuestions: `${this.prefix}answered_questions`,
       configCache: `${this.prefix}config_cache`,
       configLastFetch: `${this.prefix}config_last_fetch`,
-      consent: `${this.prefix}consent`
+      consent: `${this.prefix}consent`,
+      userIdentity: `${this.prefix}user_identity`
     };
   }
 
@@ -121,6 +122,65 @@ class StorageManager {
     } catch (error) {
       ErrorHandler.log(error, 'StorageManager.getAllUserData');
       return {};
+    }
+  }
+
+  // ========== Identité utilisateur ==========
+
+  /**
+   * Définit l'identité persistée de l'utilisateur
+   * @param {string|number|null} identity - Identifiant de connexion (null pour effacer)
+   */
+  setUserIdentity(identity) {
+    try {
+      if (identity === null || identity === undefined) {
+        this.clearUserIdentity();
+        return;
+      }
+
+      const normalized = (typeof identity === 'string' ? identity : String(identity)).trim();
+
+      if (!normalized.length) {
+        this.clearUserIdentity();
+        return;
+      }
+
+      localStorage.setItem(this.keys.userIdentity, normalized);
+
+      if (ErrorHandler.debugMode) {
+        console.log('[StorageManager] User identity saved:', normalized);
+      }
+    } catch (error) {
+      ErrorHandler.log(error, 'StorageManager.setUserIdentity');
+    }
+  }
+
+  /**
+   * Récupère l'identité persistée de l'utilisateur
+   * @returns {string|null}
+   */
+  getUserIdentity() {
+    try {
+      const value = localStorage.getItem(this.keys.userIdentity);
+      return value ?? null;
+    } catch (error) {
+      ErrorHandler.log(error, 'StorageManager.getUserIdentity');
+      return null;
+    }
+  }
+
+  /**
+   * Efface l'identité persistée de l'utilisateur
+   */
+  clearUserIdentity() {
+    try {
+      localStorage.removeItem(this.keys.userIdentity);
+
+      if (ErrorHandler.debugMode) {
+        console.log('[StorageManager] User identity cleared');
+      }
+    } catch (error) {
+      ErrorHandler.log(error, 'StorageManager.clearUserIdentity');
     }
   }
 
