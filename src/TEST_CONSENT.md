@@ -311,7 +311,7 @@ Ce guide vous permet de tester complètement le système de consentement RGPD du
 
 4. **Vérifier dans la console**
    ```javascript
-   const status = window.FeedbackSDK.getConsentStatus();
+   const status = window.PulserSDK.getConsentStatus();
    console.log(status);
    // → { enabled: true, required: true, hasConsent: false, status: null }
    ```
@@ -330,23 +330,23 @@ Ce guide vous permet de tester complètement le système de consentement RGPD du
 
 ```javascript
 // Cas 1 : Consentement activé, non demandé
-window.FeedbackSDK.clearData();
-const status1 = window.FeedbackSDK.getConsentStatus();
+window.PulserSDK.clearData();
+const status1 = window.PulserSDK.getConsentStatus();
 console.assert(status1.enabled === true, 'Enabled should be true');
 console.assert(status1.required === true, 'Required should be true');
 console.assert(status1.hasConsent === false, 'hasConsent should be false');
 console.assert(status1.status === null, 'Status should be null');
 
 // Cas 2 : Consentement accepté
-window.FeedbackSDK.setConsent(true);
-const status2 = window.FeedbackSDK.getConsentStatus();
+window.PulserSDK.setConsent(true);
+const status2 = window.PulserSDK.getConsentStatus();
 console.assert(status2.required === false, 'Required should be false after consent');
 console.assert(status2.hasConsent === true, 'hasConsent should be true');
 console.assert(status2.status === true, 'Status should be true');
 
 // Cas 3 : Consentement refusé
-window.FeedbackSDK.setConsent(false);
-const status3 = window.FeedbackSDK.getConsentStatus();
+window.PulserSDK.setConsent(false);
+const status3 = window.PulserSDK.getConsentStatus();
 console.assert(status3.hasConsent === false, 'hasConsent should be false after decline');
 console.assert(status3.status === false, 'Status should be false');
 
@@ -357,21 +357,21 @@ console.log('✅ Tous les tests getConsentStatus() passent !');
 
 ```javascript
 // Test acceptation
-window.FeedbackSDK.setConsent(true);
+window.PulserSDK.setConsent(true);
 console.assert(
-  localStorage.getItem('feedback_sdk_consent') === 'true',
+  localStorage.getItem('pulser_sdk_consent') === 'true',
   'Consent should be stored as "true"'
 );
 
 // Test refus
-window.FeedbackSDK.setUserInfo({ test: 'data' });
-window.FeedbackSDK.setConsent(false);
+window.PulserSDK.setUserInfo({ test: 'data' });
+window.PulserSDK.setConsent(false);
 console.assert(
-  localStorage.getItem('feedback_sdk_consent') === 'false',
+  localStorage.getItem('pulser_sdk_consent') === 'false',
   'Consent should be stored as "false"'
 );
 console.assert(
-  localStorage.getItem('feedback_sdk_answered_questions') === null,
+  localStorage.getItem('pulser_sdk_answered_questions') === null,
   'Responses should be cleared'
 );
 
@@ -382,14 +382,14 @@ console.log('✅ Tous les tests setConsent() passent !');
 
 ```javascript
 // Accepter puis réinitialiser
-window.FeedbackSDK.setConsent(true);
-window.FeedbackSDK.resetConsent();
+window.PulserSDK.setConsent(true);
+window.PulserSDK.resetConsent();
 console.assert(
-  localStorage.getItem('feedback_sdk_consent') === null,
+  localStorage.getItem('pulser_sdk_consent') === null,
   'Consent should be null after reset'
 );
 
-const status = window.FeedbackSDK.getConsentStatus();
+const status = window.PulserSDK.getConsentStatus();
 console.assert(status.required === true, 'Consent should be required again');
 console.assert(status.status === null, 'Status should be null');
 
@@ -422,8 +422,8 @@ console.log('✅ Tous les tests resetConsent() passent !');
 ```javascript
 // Tester sur différentes positions
 ['bottom-right', 'bottom-left', 'bottom-center', 'center'].forEach(position => {
-  window.FeedbackSDK.updatePosition(position);
-  window.FeedbackSDK.resetConsent();
+  window.PulserSDK.updatePosition(position);
+  window.PulserSDK.resetConsent();
   window.history.pushState({}, '', '/test');
   // Vérifier visuellement la position
 });
@@ -441,7 +441,7 @@ console.log('✅ Tous les tests resetConsent() passent !');
 
 ```javascript
 // Tester avec config null
-const sdk = window.FeedbackSDK;
+const sdk = window.PulserSDK;
 sdk.consentManager.setConfig(null);
 const status = sdk.getConsentStatus();
 // ✅ Ne devrait pas crasher
@@ -458,7 +458,7 @@ sdk.consentManager.setConfig({ enabled: true });
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = () => { throw new Error('QuotaExceeded'); };
 
-window.FeedbackSDK.setConsent(true);
+window.PulserSDK.setConsent(true);
 // ✅ Ne devrait pas crasher
 
 // Restaurer
@@ -511,7 +511,7 @@ Tous les scénarios doivent passer sans erreur dans la console et le comportemen
 
 **En cas de problème :**
 1. Vérifier les logs dans la console (mode debug activé)
-2. Vérifier le localStorage (`feedback_sdk_consent`)
+2. Vérifier le localStorage (`pulser_sdk_consent`)
 3. Vérifier la configuration API (`consent.enabled`)
 4. Consulter le code de `ConsentManager.js`
 

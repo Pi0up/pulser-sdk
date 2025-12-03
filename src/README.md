@@ -830,6 +830,27 @@ Le SDK peut être bundlé avec n'importe quel outil moderne :
 
 ---
 
+## 📚 Documentation
+
+### Documentation Complète
+
+- **[📖 Documentation SDK](./DOCUMENTATION.md)** - Guide complet du SDK côté client
+- **[🔌 Documentation API](./API_DOCUMENTATION.md)** - Guide complet de l'API backend
+- **[🏗️ Architecture](./ARCHITECTURE.md)** - Architecture technique interne
+- **[🧪 Guide de Tests](./TEST_GUIDE.md)** - Guide de tests complet
+- **[🎯 Positionnement](./POSITIONING_GUIDE.md)** - Guide de positionnement du widget
+- **[🔐 Tests RGPD](./TEST_CONSENT.md)** - Tests du système de consentement
+- **[📝 Changelog](./CHANGELOG.md)** - Historique des versions
+
+### Liens Rapides
+
+- [Types de questions supportés](#-types-de-questions-supportés)
+- [Système de validation](#-système-de-validation)
+- [Consentement RGPD](#-consentement-rgpd)
+- [API publique](#-api-publique)
+
+---
+
 ## 📄 Licence
 
 MIT License - Utilisation libre pour projets commerciaux et open-source.

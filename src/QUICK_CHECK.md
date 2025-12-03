@@ -12,7 +12,7 @@ Ouvrir ces fichiers et chercher les commentaires avec "Nettoyer" ou "sanitize" :
 # StorageManager.js - Ligne 221
 # StorageManager.js - Ligne 300
 
-# FeedbackSDK.js - Ligne 520 (vérifications window/document)
+# PulserSDK.js - Ligne 520 (vérifications window/document)
 ```
 
 **Ce que vous devriez voir :**
@@ -24,11 +24,11 @@ const sanitizedHistory = this._sanitizeValue(history);
 localStorage.setItem(this.keys.campaignHistory, JSON.stringify(sanitizedHistory));
 ```
 
-#### Dans FeedbackSDK.js
+#### Dans PulserSDK.js
 ```javascript
 // Vérification de sécurité : détecter les objets problématiques
 if (userData === window || userData === document) {
-  console.error('[FeedbackSDK] Cannot use window or document as user data');
+  console.error('[PulserSDK] Cannot use window or document as user data');
   return;
 }
 ```
@@ -41,8 +41,8 @@ Ouvrir la console du navigateur et coller ce code :
 
 ```javascript
 // Importer et initialiser
-import FeedbackSDK from './sdk/FeedbackSDK.js';
-const sdk = new FeedbackSDK();
+import PulserSDK from './sdk/PulserSDK.js';
+const sdk = new PulserSDK();
 await sdk.init('example.com', 'fr', null, { debug: true });
 
 // Test 1 : Objet circulaire (devrait fonctionner)
@@ -105,7 +105,7 @@ grep -n "_sanitizeValue(answered)" sdk/StorageManager.js
 L'erreur devrait indiquer quel fichier et quelle ligne cause le problème. Si c'est dans :
 - `StorageManager.js` → Vérifier que les 4 corrections sont bien appliquées
 - `DataSubmitter.js` → Déjà protégé normalement
-- `FeedbackSDK.js` → Vérifier les vérifications window/document
+- `PulserSDK.js` → Vérifier les vérifications window/document
 
 **3. Effacer le localStorage corrompu**
 ```javascript
@@ -139,7 +139,7 @@ await sdk.init('example.com', 'fr', null, { debug: true });
 - [ ] ✅ `StorageManager.js` ligne 195 : `_sanitizeValue(history)` présent
 - [ ] ✅ `StorageManager.js` ligne 221 : `_sanitizeValue(history)` présent
 - [ ] ✅ `StorageManager.js` ligne 300 : `_sanitizeValue(answered)` présent
-- [ ] ✅ `FeedbackSDK.js` ligne 520+ : Vérifications `window`/`document`
+- [ ] ✅ `PulserSDK.js` ligne 520+ : Vérifications `window`/`document`
 - [ ] ✅ Test console : Pas d'erreur JSON.stringify
 - [ ] ✅ Page de test : 11/11 tests réussis
 
@@ -151,7 +151,7 @@ Exécuter ce one-liner dans la console :
 
 ```javascript
 (async () => {
-  const sdk = new (await import('./sdk/FeedbackSDK.js')).default();
+  const sdk = new (await import('./sdk/PulserSDK.js')).default();
   await sdk.init('example.com', 'fr', null, { debug: true });
   const obj = {}; obj.self = obj;
   sdk.setUserInfo({ test: obj });

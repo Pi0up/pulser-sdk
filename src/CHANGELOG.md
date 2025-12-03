@@ -11,19 +11,19 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 ### ♻️ Refactoring - Renommage "Pulser SDK"
 
-**Changement :** Renommage complet du SDK de "FeedbackSDK" vers "PulserSDK" pour une identité de marque plus moderne et distinctive.
+**Changement :** Renommage complet du SDK de "Feedback SDK" vers "Pulser SDK" pour une identité de marque plus moderne et distinctive.
 
 #### Modifications appliquées
 
 **Fichiers SDK**
-- ✅ `/sdk/FeedbackSDK.js` → `/sdk/PulserSDK.js`
-- ✅ Classe `FeedbackSDK` → `PulserSDK`
+- ✅ `/sdk/PulserSDK.js` (anciennement FeedbackSDK.js)
+- ✅ Classe `PulserSDK` (anciennement FeedbackSDK)
 - ✅ Mise à jour de tous les imports et exports
-- ✅ Mise à jour des messages console `[FeedbackSDK]` → `[PulserSDK]`
+- ✅ Mise à jour des messages console `[PulserSDK]`
 
 **Fichiers de support**
-- ✅ `/sdk/index.js` : Exposition `window.FeedbackSDK` → `window.PulserSDK`
-- ✅ `/sdk/StorageManager.js` : Préfixe localStorage `feedback_sdk_` → `pulser_sdk_`
+- ✅ `/sdk/index.js` : Exposition `window.PulserSDK`
+- ✅ `/sdk/StorageManager.js` : Préfixe localStorage `pulser_sdk_`
 - ✅ `/sdk/UIRenderer.js` : ID host `feedback-sdk-host` → `pulser-sdk-host`
 - ✅ `/sdk/ErrorHandler.js` : Messages d'erreur mis à jour
 
@@ -36,7 +36,7 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/lang/fr/).
 
 **Ancien code :**
 ```javascript
-window.FeedbackSDK.init('domain.com', 'fr');
+window.PulserSDK.init('domain.com', 'fr');
 ```
 
 **Nouveau code :**
@@ -91,7 +91,7 @@ window.PulserSDK.init('domain.com', 'fr');
 - ✅ `submitAnswer()` → via `_sanitizeData()`
 - ✅ `submitImpression()` → via `_sanitizeData()`
 
-**FeedbackSDK.js**
+**PulserSDK.js**
 - ✅ `setUserInfo()` → vérifications explicites + sanitization dans StorageManager
 
 #### Impact
@@ -112,7 +112,7 @@ window.PulserSDK.init('domain.com', 'fr');
 
 ```
 /sdk/StorageManager.js          ← 4 corrections
-/sdk/FeedbackSDK.js            ← 1 correction (setUserInfo)
+/sdk/PulserSDK.js              ← 1 correction (setUserInfo)
 /TEST_CIRCULAR_REFS.md         ← Nouveau (guide de test)
 /CHANGELOG_CIRCULAR_REFS_FIX.md ← Archivé
 ```
@@ -129,30 +129,30 @@ window.PulserSDK.init('domain.com', 'fr');
 
 #### Modifications techniques
 
-**FeedbackSDK.js - Pattern Singleton**
+**PulserSDK.js - Pattern Singleton**
 
 ```javascript
-class FeedbackSDK {
+class PulserSDK {
   static instance = null;
 
   constructor() {
     // Retourner l'instance existante si déjà créée
-    if (FeedbackSDK.instance) {
-      return FeedbackSDK.instance;
+    if (PulserSDK.instance) {
+      return PulserSDK.instance;
     }
     
     // Stocker la nouvelle instance
-    FeedbackSDK.instance = this;
+    PulserSDK.instance = this;
   }
 
   // Méthode statique pour récupérer l'instance
   static getInstance() {
-    return FeedbackSDK.instance;
+    return PulserSDK.instance;
   }
 }
 ```
 
-**FeedbackSDK.js - Protection affichages multiples**
+**PulserSDK.js - Protection affichages multiples**
 
 ```javascript
 // Nouveaux flags dans le constructor

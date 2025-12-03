@@ -18,7 +18,7 @@ Ce guide contient des tests pour valider que le SDK gère correctement les réf�
 - ✅ `submitAnswer()` - Sanitization déjà présente avec `_sanitizeData()`
 - ✅ `submitImpression()` - Sanitization déjà présente avec `_sanitizeData()`
 
-### 3. FeedbackSDK.js
+### 3. PulserSDK.js
 - ✅ `setUserInfo()` - Ajout de vérifications explicites pour `window` et `document`
 
 ## Tests de Validation
@@ -31,7 +31,7 @@ const obj = { name: 'test' };
 obj.self = obj;
 
 // Tenter de l'ajouter comme métadonnée utilisateur
-window.feedbackSDK.setUserInfo({ circularObject: obj });
+window.pulserSDK.setUserInfo({ circularObject: obj });
 
 // ✅ Devrait : Logger sans erreur, stocker "[Circular Reference]" au lieu de l'objet
 // ❌ Ne devrait pas : Lever une erreur JSON.stringify
@@ -41,7 +41,7 @@ window.feedbackSDK.setUserInfo({ circularObject: obj });
 
 ```javascript
 // Tenter d'ajouter l'objet window
-window.feedbackSDK.setUserInfo({ windowRef: window });
+window.pulserSDK.setUserInfo({ windowRef: window });
 
 // ✅ Devrait : Logger un avertissement, ignorer cette clé
 // ❌ Ne devrait pas : Stocker l'objet window
@@ -51,7 +51,7 @@ window.feedbackSDK.setUserInfo({ windowRef: window });
 
 ```javascript
 // Tenter d'ajouter l'objet document
-window.feedbackSDK.setUserInfo({ documentRef: document });
+window.pulserSDK.setUserInfo({ documentRef: document });
 
 // ✅ Devrait : Logger un avertissement, ignorer cette clé
 // ❌ Ne devrait pas : Stocker l'objet document
@@ -62,7 +62,7 @@ window.feedbackSDK.setUserInfo({ documentRef: document });
 ```javascript
 // Tenter d'ajouter un élément DOM
 const element = document.querySelector('body');
-window.feedbackSDK.setUserInfo({ domElement: element });
+window.pulserSDK.setUserInfo({ domElement: element });
 
 // ✅ Devrait : Convertir en "[DOM Element: BODY]"
 // ❌ Ne devrait pas : Lever une erreur
@@ -77,7 +77,7 @@ const objWithFunction = {
   action: function() { return 'hello'; }
 };
 
-window.feedbackSDK.setUserInfo({ objWithFunc: objWithFunction });
+window.pulserSDK.setUserInfo({ objWithFunc: objWithFunction });
 
 // ✅ Devrait : Stocker l'objet sans la fonction
 // ❌ Ne devrait pas : Inclure la fonction dans le stockage
@@ -90,7 +90,7 @@ window.feedbackSDK.setUserInfo({ objWithFunc: objWithFunction });
 const arr = [1, 2, 3];
 arr.push(arr);
 
-window.feedbackSDK.setUserInfo({ circularArray: arr });
+window.pulserSDK.setUserInfo({ circularArray: arr });
 
 // ✅ Devrait : Stocker le tableau avec "[Circular Reference]" au lieu de la référence
 // ❌ Ne devrait pas : Lever une erreur JSON.stringify
@@ -111,7 +111,7 @@ const parent = {
 };
 parent.child.grandchild.root = parent;
 
-window.feedbackSDK.setUserInfo({ deepCircular: parent });
+window.pulserSDK.setUserInfo({ deepCircular: parent });
 
 // ✅ Devrait : Stocker la structure avec "[Circular Reference]" pour la boucle
 // ❌ Ne devrait pas : Lever une erreur
@@ -130,7 +130,7 @@ const complexData = {
 };
 complexData.session.circular = complexData;
 
-window.feedbackSDK.setUserInfo(complexData);
+window.pulserSDK.setUserInfo(complexData);
 
 // Ensuite, répondre à une question
 // Lorsque submitAnswer() est appelé avec getAllUserData() comme metadata
@@ -142,7 +142,7 @@ window.feedbackSDK.setUserInfo(complexData);
 
 ```javascript
 // Obtenir les informations de debug et les sérialiser
-const debugInfo = window.feedbackSDK.getDebugInfo();
+const debugInfo = window.pulserSDK.getDebugInfo();
 
 try {
   const serialized = JSON.stringify(debugInfo);
@@ -162,7 +162,7 @@ try {
 const userData = { id: 'test-user' };
 userData.meta = { self: userData };
 
-window.feedbackSDK.setUserInfo(userData);
+window.pulserSDK.setUserInfo(userData);
 
 // 2. Répondre à une question (ceci déclenche markCampaignAsAnswered)
 // (simulé via l'interface ou manuellement avec _handleSubmit)
@@ -188,7 +188,7 @@ console.log('Stored user data:', stored);
   <div id="test-results"></div>
 
   <script type="module">
-    import FeedbackSDK from './sdk/FeedbackSDK.js';
+    import PulserSDK from './sdk/PulserSDK.js';
 
     const results = [];
     const logResult = (test, success, message) => {
@@ -208,14 +208,14 @@ console.log('Stored user data:', stored);
     };
 
     // Initialiser le SDK
-    window.feedbackSDK = new FeedbackSDK();
-    await window.feedbackSDK.init('example.com', 'fr', null, { debug: true });
+    window.pulserSDK = new PulserSDK();
+    await window.pulserSDK.init('example.com', 'fr', null, { debug: true });
 
     // Test 1 : Objet circulaire simple
     try {
       const obj = { name: 'test' };
       obj.self = obj;
-      window.feedbackSDK.setUserInfo({ circularObject: obj });
+      window.pulserSDK.setUserInfo({ circularObject: obj });
       logResult('Test 1', true, 'Objet circulaire géré sans erreur');
     } catch (error) {
       logResult('Test 1', false, error.message);
@@ -223,7 +223,7 @@ console.log('Stored user data:', stored);
 
     // Test 2 : Objet window
     try {
-      window.feedbackSDK.setUserInfo({ windowRef: window });
+      window.pulserSDK.setUserInfo({ windowRef: window });
       logResult('Test 2', true, 'Objet window rejeté proprement');
     } catch (error) {
       logResult('Test 2', false, error.message);
@@ -231,7 +231,7 @@ console.log('Stored user data:', stored);
 
     // Test 3 : Objet document
     try {
-      window.feedbackSDK.setUserInfo({ documentRef: document });
+      window.pulserSDK.setUserInfo({ documentRef: document });
       logResult('Test 3', true, 'Objet document rejeté proprement');
     } catch (error) {
       logResult('Test 3', false, error.message);
@@ -239,7 +239,7 @@ console.log('Stored user data:', stored);
 
     // Test 4 : Élément DOM
     try {
-      window.feedbackSDK.setUserInfo({ domElement: document.body });
+      window.pulserSDK.setUserInfo({ domElement: document.body });
       logResult('Test 4', true, 'Élément DOM converti en string');
     } catch (error) {
       logResult('Test 4', false, error.message);
@@ -249,7 +249,7 @@ console.log('Stored user data:', stored);
     try {
       const arr = [1, 2, 3];
       arr.push(arr);
-      window.feedbackSDK.setUserInfo({ circularArray: arr });
+      window.pulserSDK.setUserInfo({ circularArray: arr });
       logResult('Test 5', true, 'Tableau circulaire géré sans erreur');
     } catch (error) {
       logResult('Test 5', false, error.message);
@@ -262,7 +262,7 @@ console.log('Stored user data:', stored);
         child: { name: 'child', grandchild: { name: 'grandchild' } }
       };
       parent.child.grandchild.root = parent;
-      window.feedbackSDK.setUserInfo({ deepCircular: parent });
+      window.pulserSDK.setUserInfo({ deepCircular: parent });
       logResult('Test 6', true, 'Objet profond avec circularité géré');
     } catch (error) {
       logResult('Test 6', false, error.message);
@@ -270,7 +270,7 @@ console.log('Stored user data:', stored);
 
     // Test 7 : getDebugInfo() sérialisable
     try {
-      const debugInfo = window.feedbackSDK.getDebugInfo();
+      const debugInfo = window.pulserSDK.getDebugInfo();
       JSON.stringify(debugInfo);
       logResult('Test 7', true, 'getDebugInfo() sérialisable en JSON');
     } catch (error) {
@@ -329,17 +329,17 @@ Pour vérifier manuellement la protection :
 1. **Identifier l'origine** : Regarder la stack trace pour voir quel fichier/ligne cause l'erreur
 2. **Vérifier les métadonnées** : 
    ```javascript
-   console.log('User data:', window.feedbackSDK.getDebugInfo().userData);
+   console.log('User data:', window.pulserSDK.getDebugInfo().userData);
    ```
 3. **Nettoyer le storage** :
    ```javascript
-   window.feedbackSDK.clearData();
+   window.pulserSDK.clearData();
    ```
 4. **Réinitialiser** :
    ```javascript
-   window.feedbackSDK.destroy();
-   window.feedbackSDK = new FeedbackSDK();
-   await window.feedbackSDK.init('example.com', 'fr', null, { debug: true });
+   window.pulserSDK.destroy();
+   window.pulserSDK = new PulserSDK();
+   await window.pulserSDK.init('example.com', 'fr', null, { debug: true });
    ```
 
 ## Fonctions de Sanitization

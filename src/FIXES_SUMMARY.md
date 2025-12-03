@@ -24,20 +24,20 @@ localStorage.setItem(this.keys.campaignHistory, JSON.stringify(sanitizedHistory)
 - `markCampaignAsAnswered()` (ligne 216)
 - `_storeAnsweredQuestion()` (ligne 293)
 
-### 2. **FeedbackSDK.js** - 1 correction
+### 2. **PulserSDK.js** - 1 correction
 Ajout de détection préventive pour `window` et `document` dans `setUserInfo()` :
 
 ```javascript
 // ✅ NOUVEAU
 if (userData === window || userData === document) {
-  console.error('[FeedbackSDK] Cannot use window or document as user data');
+  console.error('[PulserSDK] Cannot use window or document as user data');
   return;
 }
 
 // Vérification par clé
 Object.entries(userData).forEach(([key, value]) => {
   if (value === window || value === document) {
-    console.warn(`[FeedbackSDK] Skipping key "${key}": cannot store window or document references`);
+    console.warn(`[PulserSDK] Skipping key "${key}": cannot store window or document references`);
     return;
   }
   this.storageManager.setUserData(key, value);
@@ -57,7 +57,7 @@ Cette page exécute automatiquement 11 tests pour valider la protection.
 ### Option 2 : Tests Manuels en Console
 ```javascript
 // 1. Initialiser le SDK
-const sdk = new FeedbackSDK();
+const sdk = new PulserSDK();
 await sdk.init('example.com', 'fr', null, { debug: true });
 
 // 2. Tester avec un objet circulaire
@@ -116,7 +116,7 @@ Le SDK gère maintenant gracieusement tous les types d'objets problématiques, a
 
 **Fichiers modifiés :**
 - `/sdk/StorageManager.js` (4 corrections)
-- `/sdk/FeedbackSDK.js` (1 correction)
+- `/sdk/PulserSDK.js` (1 correction)
 - `/README.md` (documentation mise à jour)
 
 **Fichiers créés :**
