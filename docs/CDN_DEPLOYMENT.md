@@ -126,3 +126,22 @@ Note importante: le déploiement est généralement effectué via le script déd
 ## Confirmation
 
 Cette documentation fournit les étapes complètes pour générer et déployer le Pulser SDK sur le CDN et peut être suivie par tout membre de l'équipe.
+### Checklist de vérification
+
+- [ ] Vérifier que les artefacts Pulser SDK minifiés et leurs fichiers map existent sur le CDN et sont publiquement accessibles:
+  - [`deploy/cdn/pulser-sdk.vX.Y.Z.min.js`](deploy/cdn/pulser-sdk.vX.Y.Z.min.js)
+  - [`deploy/cdn/pulser-sdk.vX.Y.Z.min.js.map`](deploy/cdn/pulser-sdk.vX.Y.Z.min.js.map)
+- [ ] Vérifier que le manifeste latest.json est à jour dans deploy/cdn/latest.json et reflète la version déployée.
+- [ ] Vérifier que test/cdn-test.html charge le SDK et passe les tests de base (console sans erreurs).
+- [ ] Vérifier les logs et les messages du script de déploiement pour tout avertissement ou erreur.
+- [ ] Mettre à jour le changelog et le README si nécessaire avec la nouvelle version.
+
+### Comment valider le déploiement
+
+- Ouvrir test/cdn-test.html dans un navigateur et confirmer que PulserSDK est chargé sans erreurs.
+- Vérifier dans la console que PulserSDK est accessible et expose les API principales.
+- Vérifier le chargement du fichier pulser-sdk.vX.Y.Z.min.js depuis le CDN et les requêtes associées (onglet Réseau du navigateur).
+- Si possible, exécuter les tests d'intégration simples ou un script de vérification local.
+
+- Autres notes
+  - Le script de déploiement et sa référence: [`scripts/deploy-cdn.js`](scripts/deploy-cdn.js)
