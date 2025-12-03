@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>CDN PulserSDK - test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    #log { white-space: pre-wrap; background: #f6f6f6; padding: 1rem; border: 1px solid #ddd; height: 420px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>CDN Pulser SDK - test</h1>
+  <p>Chargement du SDK à partir du CDN simulé: deploy/cdn/pulser-sdk.v0.1.0.min.js</p>
+  <div id="status">Status: en cours...</div>
+  <pre id="log"></pre>
+  <script src="../deploy/cdn/pulser-sdk.v0.1.0.min.js"></script>
+  <script>
+    (function() {
+      const logEl = document.getElementById('log');
+      function log(msg) {
+        const line = new Date().toISOString() + ' - ' + msg;
+        logEl.textContent += line + '\\n';
+        console.log(line);
+      }
+
+      log('PulserSDK typeof: ' + (typeof PulserSDK));
+      let initOk = false;
+      let versionInfo = 'non disponible';
+
+      try {
+        if (typeof PulserSDK === 'function') {
+          // Try constructor pattern
+          const sdk = new PulserSDK({ debug: true, environment: 'test', app: 'cdn-test' });
+          initOk = true;
+          versionInfo = (typeof sdk.getVersion === 'function') ? sdk.getVersion() : (sdk.version || 'unknown');
+          if (typeof sdk.getVersion === 'function') {
+            log('Version via getVersion: ' + sdk.getVersion());
+          } else {
+            log('getVersion not available on CDN SDK instance');
+          }
+          if (typeof sdk.getDebugInfo === 'function') {
+            try {
+              const dbg = sdk.getDebugInfo();
+              log('Debug info: ' + JSON.stringify(dbg, null, 2));
+            } catch (err) {
+              log('Error while retrieving debug info: ' + err);
+            }
+          } else {
+            log('getDebugInfo not available on CDN SDK');
+          }
+        } else if (typeof PulserSDK === 'object' && typeof PulserSDK.init === 'function') {
+          const sdk = PulserSDK.init({ debug: true, environment: 'test', app: 'cdn-test' });
+          initOk = true;
+          versionInfo = (typeof sdk.getVersion === 'function') ? sdk.getVersion() : (PulserSDK.version || 'unknown');
+          if (typeof sdk.getVersion === 'function') {
+            log('Version via getVersion: ' + sdk.getVersion());
+          } else {
+            log('getVersion not available on CDN SDK (init path)');
+          }
+          if (typeof sdk.getDebugInfo === 'function') {
+            try {
+              const dbg = sdk.getDebugInfo();
+              log('Debug info: ' + JSON.stringify(dbg, null, 2));
+            } catch (err) {
+              log('Error while retrieving debug info: ' + err);
+            }
+          } else {
+            log('getDebugInfo not available on CDN SDK (init path)');
+          }
+        } else {
+          log('PulserSDK n est ni une fonction ni un objet avec init.');
+        }
+      } catch (e) {
+        log('Erreur pendant l init: ' + e);
+      }
+
+      log('Version SDK: ' + versionInfo);
+      log('Initialisation: ' + (initOk ? 'OK' : 'ÉCHEC'));
+      document.getElementById('status').textContent = 'Status: ' + (initOk ? 'SDK chargé et initialisé' : 'Échec du chargement');
+
+      // Extended checks (if available)
+      try {
+        if (typeof PulserSDK === 'function') {
+          const ext = new PulserSDK({ debug: true, environment: 'test', app: 'cdn-test' });
+          if (typeof ext.getDebugInfo === 'function') {
+            const dbg = ext.getDebugInfo();
+            log('Extended debug info: ' + JSON.stringify(dbg, null, 2));
+          } else {
+            log('Extended debug info not available on new instance');
+          }
+        } else if (typeof PulserSDK === 'object' && typeof PulserSDK.init === 'function') {
+          const ext = PulserSDK.init({ debug: true, environment: 'test', app: 'cdn-test' });
+          if (typeof ext.getDebugInfo === 'function') {
+            const dbg = ext.getDebugInfo();
+            log('Extended debug info: ' + JSON.stringify(dbg, null, 2));
+          } else {
+            log('Extended debug info not available on init path');
+          }
+        } else {
+          log('No extra SDK instance available for extended checks');
+        }
+      } catch (err) {
+        log('Error during extended SDK checks: ' + err);
+      }
+    })();
+  </script>
+</body>
+</html>

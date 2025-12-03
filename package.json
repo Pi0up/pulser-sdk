@@ -1,5 +1,5 @@
 {
-  "name": "Sans titre",
+  "name": "pulser SDK",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -58,6 +58,7 @@
     "build:sdk": "vite build",
     "build:sdk:dev": "vite build --sourcemap --minify false",
     "build:sdk:all": "npm run build:sdk && npm run build:sdk:dev",
-    "deploy:cdn": "node scripts/deploy-cdn.js"
+    "deploy:cdn": "node scripts/deploy-cdn.js",
+    "test:cdn": "open test/cdn-test.html"
   }
 }

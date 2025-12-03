@@ -820,6 +820,14 @@ class PulserSDK {
     }
     return false;
   }
+  /**
+   * Récupère la version actuelle du SDK à partir du package.json
+   * @returns {string}
+   */
+  getVersion() {
+    return (typeof pkg !== 'undefined' && pkg.version) ? pkg.version : '0.0.0';
+  }
+
  /**
   * Récupère les informations de debug
   * @returns {Object}
